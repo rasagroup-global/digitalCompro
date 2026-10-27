@@ -11,6 +11,12 @@ const de: Dict = {
     contact: 'Kontakt - Rasa Group Global',
     fallback: 'Rasa Group Global',
   },
+  descriptions: {
+    home: 'Wir bauen keine Cafés. Wir bauen die Zukunft der Gastronomie – mit indonesischer Exklusivität, deutscher Ingenieurskunst und einem skalierbaren Tech-Ökosystem.',
+    about: 'Erfahren Sie mehr über die Rasa Group Global, eine Hauptmarke der Rasa Global Investment L.L.C., unsere EUIPO-geschützten Markenrechte und unser Kernteam.',
+    contact: 'Nehmen Sie Kontakt mit der Rasa Group Global auf – für Franchise-Partnerschaften, Standorte und Fragen zu unserem Gastronomie-Ökosystem.',
+    fallback: 'Wir bauen keine Cafés. Wir bauen die Zukunft der Gastronomie.',
+  },
   nav: {
     pages: ['Startseite', 'Über', 'Kontakt'],
     menu: 'Menü',

@@ -7,6 +7,12 @@ const en = {
     contact: 'Contact - Rasa Group Global',
     fallback: 'Rasa Group Global',
   },
+  descriptions: {
+    home: "We don't build cafés. We build the future of gastronomy—combining Indonesian heritage, German engineering precision, and a scalable tech ecosystem.",
+    about: 'Learn about Rasa Group Global, a flagship brand of Rasa Global Investment L.L.C., our EUIPO-registered intellectual property, and our core leadership team.',
+    contact: 'Get in touch with Rasa Group Global to learn more about franchise partnerships, locations, and our scalable gastronomy ecosystem.',
+    fallback: "We don't build cafés. We build the future of gastronomy.",
+  },
   nav: {
     pages: ['Home', 'About', 'Contact'],
     menu: 'Menu',
