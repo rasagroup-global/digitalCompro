@@ -1,0 +1,118 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Editor';
+  src: url('/fonts/Editor-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Editor';
+  src: url('/fonts/Editor-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Editor';
+  src: url('/fonts/Editor-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Editor';
+  src: url('/fonts/Editor-Italic.woff2') format('woff2');
+  font-weight: 425;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* Breakpoints match the Framer project: Phone < 810, Tablet 810–1199, Desktop ≥ 1200 */
+@theme {
+  --breakpoint-md: 810px;
+  --breakpoint-lg: 1200px;
+
+  --font-serif: 'Editor', 'Times New Roman', serif;
+  --font-sans: 'Satoshi', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, monospace;
+  --font-brand: 'Bai Jamjuree', 'Satoshi', sans-serif;
+
+  --color-ink: rgb(16 16 16);
+  --color-body: rgb(51 51 51);
+  --color-cream: rgb(249 245 235);
+  --color-chestnut: rgb(99 59 44);
+  --color-mist: rgb(242 242 242);
+  --color-forest: rgb(22 35 27);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+  }
+}
+
+@layer components {
+  /* Section headline: Editor Medium, uppercase (46 / 40 / 30px) */
+  .h-section {
+    @apply font-serif text-[30px] leading-[1.2] font-medium uppercase md:text-[40px] lg:text-[46px];
+  }
+  /* Large supporting paragraph (24 / 18px) */
+  .lead {
+    @apply text-lg leading-[1.35] tracking-[-0.03em] md:text-2xl;
+  }
+  /* Small card headline: Editor Medium, uppercase (24 / 18px) */
+  .h-card {
+    @apply font-serif text-lg leading-[1.2] font-medium uppercase md:text-2xl;
+  }
+  /* Wide-tracked uppercase eyebrow */
+  .eyebrow {
+    @apply text-sm leading-[1.25] font-medium tracking-[0.31em] uppercase md:text-2xl;
+  }
+  .container-site {
+    @apply mx-auto w-full max-w-[1200px] px-5 md:px-8;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+.pause-on-hover:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-marquee {
+    animation: none;
+  }
+}
