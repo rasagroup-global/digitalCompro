@@ -6,11 +6,12 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import Imprint from './pages/Imprint'
 import NotFound from './pages/NotFound'
 import { basePath, localize, useLocale, useT } from './i18n'
 
 const SITE_ORIGIN = 'https://rasagroup.global'
-const TITLE_KEYS = { '/': 'home', '/about': 'about', '/contact': 'contact' } as const
+const TITLE_KEYS = { '/': 'home', '/about': 'about', '/contact': 'contact', '/imprint': 'imprint' } as const
 
 function setMeta(selector: string, content: string) {
   document.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', content)
@@ -71,9 +72,11 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/imprint" element={<Imprint />} />
           <Route path="/de" element={<Home />} />
           <Route path="/de/about" element={<About />} />
           <Route path="/de/contact" element={<Contact />} />
+          <Route path="/de/impressum" element={<Imprint />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

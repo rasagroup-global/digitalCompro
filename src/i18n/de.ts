@@ -9,12 +9,14 @@ const de: Dict = {
     home: 'Rasa Gruppe Global - Die Zukunft der Gastronomie',
     about: 'Über uns - Rasa Group Global',
     contact: 'Kontakt - Rasa Group Global',
+    imprint: 'Impressum - Rasa Group Global',
     fallback: 'Rasa Group Global',
   },
   descriptions: {
     home: 'Wir bauen keine Cafés. Wir bauen die Zukunft der Gastronomie – mit indonesischer Exklusivität, deutscher Ingenieurskunst und einem skalierbaren Tech-Ökosystem.',
     about: 'Erfahren Sie mehr über die Rasa Group Global, eine Hauptmarke der Rasa Global Investment L.L.C., unsere EUIPO-geschützten Markenrechte und unser Kernteam.',
     contact: 'Nehmen Sie Kontakt mit der Rasa Group Global auf – für Franchise-Partnerschaften, Standorte und Fragen zu unserem Gastronomie-Ökosystem.',
+    imprint: 'Impressum der Rasa Group Global.',
     fallback: 'Wir bauen keine Cafés. Wir bauen die Zukunft der Gastronomie.',
   },
   nav: {
@@ -184,6 +186,8 @@ const de: Dict = {
     columns: ['Hauptseiten', 'Social media', 'Kontakt & Sonstiges'],
     pages: ['Startseite', 'Unsere Marke', 'Geschichte', 'Starterset', 'Team'],
     contact: 'Kontakt',
+    imprint: 'Impressum',
+    privacy: 'Datenschutz',
     copyright: '© 2026 Rasa Group Global. Alle Rechte vorbehalten. Rasa Group Global ist eine Marke der Rasa Global Investment L.L.C.',
   },
   about: {
@@ -221,6 +225,14 @@ const de: Dict = {
     // Framer shows these two button states in English on the German site as well.
     sent: 'Thank you',
     error: 'Something went wrong',
+  },
+  imprint: {
+    title: 'Impressum',
+    phone: 'Telefon',
+    email: 'E-Mail',
+    vatId: 'USt-IdNr.',
+    authority: 'Zuständige Aufsichtsbehörde für audiovisuelle Mediendienste',
+    dispute: 'Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.',
   },
   notFound: {
     title: 'Seite nicht gefunden',

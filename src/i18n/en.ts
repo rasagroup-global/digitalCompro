@@ -5,12 +5,14 @@ const en = {
     home: 'Rasa Group Global - The Future of Gastronomy',
     about: 'About - Rasa Group Global',
     contact: 'Contact - Rasa Group Global',
+    imprint: 'Imprint - Rasa Group Global',
     fallback: 'Rasa Group Global',
   },
   descriptions: {
     home: "We don't build cafés. We build the future of gastronomy—combining Indonesian heritage, German engineering precision, and a scalable tech ecosystem.",
     about: 'Learn about Rasa Group Global, a flagship brand of Rasa Global Investment L.L.C., our EUIPO-registered intellectual property, and our core leadership team.',
     contact: 'Get in touch with Rasa Group Global to learn more about franchise partnerships, locations, and our scalable gastronomy ecosystem.',
+    imprint: 'Legal notice (imprint) of Rasa Group Global.',
     fallback: "We don't build cafés. We build the future of gastronomy.",
   },
   nav: {
@@ -185,6 +187,8 @@ const en = {
     columns: ['Main Pages', 'Social media', 'Contact & other'],
     pages: ['Homepage', 'Our brand', 'story', 'start kit', 'Team'],
     contact: 'Contact',
+    imprint: 'Imprint',
+    privacy: 'Privacy Policy',
     copyright: '© 2026 Rasa Group Global. All rights reserved. Rasa Group Global is a brand of Rasa Global Investment L.L.C.',
   },
   about: {
@@ -224,6 +228,14 @@ const en = {
     submit: 'Submit',
     sent: 'Thank you',
     error: 'Something went wrong',
+  },
+  imprint: {
+    title: 'Imprint',
+    phone: 'Phone',
+    email: 'Email',
+    vatId: 'VAT ID',
+    authority: 'Competent supervisory authority for audiovisual media services',
+    dispute: 'We are neither willing nor obliged to participate in dispute resolution proceedings before a consumer arbitration board.',
   },
   notFound: {
     title: 'Page not found',

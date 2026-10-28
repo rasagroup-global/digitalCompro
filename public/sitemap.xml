@@ -51,5 +51,21 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://rasagroup.global/imprint</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rasagroup.global/imprint" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rasagroup.global/de/impressum" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rasagroup.global/imprint" />
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://rasagroup.global/de/impressum</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rasagroup.global/imprint" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rasagroup.global/de/impressum" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rasagroup.global/imprint" />
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>
 

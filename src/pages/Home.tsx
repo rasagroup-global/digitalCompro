@@ -18,20 +18,30 @@ const img = (file: string) => `/images/${file}`
 
 /* ------------------------------------------------------------------ Intro + brands */
 
+/* Framer node iASFye3r7 ("brandcta"): only the paragraph fades in (Framer appear: opacity, spring 400/58,
+   delay 0.1, at 50% in view, once); the button has no effect. Desktop: one row, text left, button right.
+   Tablet/phone: stacked and centred (40px gap); phone has 60px vertical padding, 18px text and a full-width
+   button. */
 function Intro({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
   const t = useT().intro
   return (
-    <section ref={sectionRef} className="container-site flex flex-col gap-8 py-20 md:flex-row md:items-end md:gap-2.5">
-      <Reveal className="md:flex-1">
-        <p className="text-lg leading-[1.35] tracking-[-0.03em] md:text-2xl">
+    <section
+      ref={sectionRef}
+      id="brandcta"
+      className="mx-auto flex w-full flex-col items-center justify-center gap-10 overflow-clip px-8 py-[60px] md:py-20 lg:w-[1200px] lg:flex-row lg:items-end lg:gap-2.5"
+    >
+      <Appear className="w-full lg:w-px lg:flex-1">
+        <p className="text-lg leading-[1.35] tracking-[-0.03em] text-center text-ink md:text-2xl lg:text-left">
           {t.text.pre}
           <strong>{t.text.brand}</strong>
           {t.text.post}
         </p>
-      </Reveal>
-      <Reveal className="flex md:flex-1 md:justify-end" delay={0.1}>
-        <Button href={APPLY_URL}>{t.cta}</Button>
-      </Reveal>
+      </Appear>
+      <div className="flex w-full flex-col items-center justify-center gap-3.5 overflow-clip lg:w-px lg:flex-1 lg:flex-row lg:justify-end">
+        <Button href={APPLY_URL} className="max-md:w-full">
+          {t.cta}
+        </Button>
+      </div>
     </section>
   )
 }

@@ -30,7 +30,7 @@ Like the Framer form, submissions are sent by email (subject "New Submission", b
 then a redirect to the home page). Sending goes through [FormSubmit](https://formsubmit.co), no account
 or key needed.
 
-- The recipient is `EMAIL.to` in `src/pages/Contact.tsx` (currently `enjiostudio@gmail.com`).
+- The recipient is `EMAIL.to` in `src/pages/Contact.tsx` (currently `access@rasagroup.global`).
 - The first submission sends an activation email to that address; click the link in it once, and from
   then on every submission is delivered.
 

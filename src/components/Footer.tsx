@@ -19,6 +19,8 @@ const linkClass = 'block leading-7 tracking-[-0.03em] whitespace-pre text-[#8a8a
 
 function FooterAnchor({ label, href }: FooterLink) {
   const localePath = useLocalePath()
+  // No destination yet (Privacy Policy until its text arrives): shown in place, not clickable.
+  if (!href) return <span className={linkClass}>{label}</span>
   if (href.startsWith('/')) {
     return (
       <Link to={localePath(href)} className={linkClass}>
@@ -100,7 +102,15 @@ export default function Footer() {
   const columns: { title: string; links: FooterLink[] }[] = [
     { title: t.columns[0], links: PAGE_LINKS.map((href, i) => ({ label: t.pages[i], href })) },
     { title: t.columns[1], links: SOCIAL_LINKS },
-    { title: t.columns[2], links: [{ label: t.contact, href: '/contact' }] },
+    {
+      title: t.columns[2],
+      links: [
+        { label: t.contact, href: '/contact' },
+        { label: t.imprint, href: '/imprint' },
+        // TODO: point to the privacy page (/privacy, /de/datenschutz) once its text is ready.
+        { label: t.privacy, href: '' },
+      ],
+    },
   ]
   return (
     <footer className="flex flex-col items-center overflow-hidden bg-ink px-8">

@@ -12,7 +12,7 @@ import { useLocalePath, useT } from '../i18n'
 // service doesn't come with the export, so submissions are emailed through FormSubmit (formsubmit.co).
 // To change who receives the messages, edit `to` below.
 const EMAIL = {
-  to: 'enjiostudio@gmail.com',
+  to: 'access@rasagroup.global',
   from_name: 'Contact Us',
   subject: 'New Submission',
   intro: 'You’ve just received a new submission.',
