@@ -1,0 +1,12 @@
+services:
+  app:
+    image: ghcr.io/rasagroup-global/digitalcompro/app:${DOCKER_TAG:-main}
+    container_name: ${PROJECT_NAME:-compro-main}-app
+    restart: always
+    networks:
+      - rasa-shared-net
+
+networks:
+  rasa-shared-net:
+    external: true
+

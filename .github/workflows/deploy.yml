@@ -1,0 +1,157 @@
+name: Centralized Deployment Compro
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Image
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          BRANCH_TAG=${{ github.ref_name }}
+          docker build --no-cache -t ghcr.io/$REPO_LOWER/app:$BRANCH_TAG .
+          docker push ghcr.io/$REPO_LOWER/app:$BRANCH_TAG
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: root
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            BRANCH=${{ github.ref_name }}
+            DOMAIN="rasagroup.global"
+            WWW_DOMAIN="www.rasagroup.global"
+
+            TARGET_DIR=/var/www/RASA/COMPRO/$BRANCH
+            PROXY_CONF=/var/www/RASA/INFRA/conf.d/compro-$BRANCH.conf
+            REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+
+            mkdir -p $TARGET_DIR
+            cd $TARGET_DIR
+
+            # 1. GENERATE .ENV & DOCKER-COMPOSE.YML
+            echo "PROJECT_NAME=compro-$BRANCH" > .env
+            echo "DOCKER_TAG=$BRANCH" >> .env
+
+            echo "services:" > docker-compose.yml
+            echo "  app:" >> docker-compose.yml
+            echo "    image: ghcr.io/$REPO_LOWER/app:$BRANCH" >> docker-compose.yml
+            echo "    container_name: compro-$BRANCH-app" >> docker-compose.yml
+            echo "    restart: always" >> docker-compose.yml
+            echo "    networks:" >> docker-compose.yml
+            echo "      - rasa-shared-net" >> docker-compose.yml
+            echo "networks:" >> docker-compose.yml
+            echo "  rasa-shared-net:" >> docker-compose.yml
+            echo "    external: true" >> docker-compose.yml
+
+            # 2. LOGIN GHCR & HENTIKAN CONTAINER LAMA
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose --project-name compro-$BRANCH down --remove-orphans || true
+
+            # 3. PULL IMAGE & EKSTRAK FILE BUILD KE FOLDER HOST (/var/www/RASA/COMPRO/main/public)
+            docker pull ghcr.io/$REPO_LOWER/app:$BRANCH
+            docker create --name extract-compro-$BRANCH ghcr.io/$REPO_LOWER/app:$BRANCH
+
+            rm -rf $TARGET_DIR/public
+            mkdir -p $TARGET_DIR/public
+            docker cp extract-compro-$BRANCH:/usr/share/nginx/html/. $TARGET_DIR/public/
+
+            docker rm extract-compro-$BRANCH
+            chmod -R 755 $TARGET_DIR/public
+
+            # 4. JALANKAN CONTAINER COMPRO
+            docker compose --project-name compro-$BRANCH up -d --force-recreate app
+
+            # 5. BACKUP CONFIG NGINX MANUAL LAMA (JIKA ADA KONFLIK SERVER_NAME rasagroup.global)
+            for f in /var/www/RASA/INFRA/conf.d/*.conf; do
+              if [ -f "$f" ] && [ "$f" != "$PROXY_CONF" ]; then
+                if grep -qE "server_name[[:space:]]+.*(^|[[:space:]])rasagroup\.global([[:space:]]|;)" "$f"; then
+                  mv "$f" "$f.bak"
+                fi
+              fi
+            done
+
+            # 6. REQUEST SSL VIA CERTBOT (UNTUK rasagroup.global & www.rasagroup.global)
+            if [ ! -d "/var/www/RASA/INFRA/certbot/conf/live/$DOMAIN" ]; then
+              echo "server {" > $PROXY_CONF
+              echo "    listen 80;" >> $PROXY_CONF
+              echo "    server_name $DOMAIN $WWW_DOMAIN;" >> $PROXY_CONF
+              echo "    location /.well-known/acme-challenge/ { root /var/lib/letsencrypt; }" >> $PROXY_CONF
+              echo "    location / { return 301 https://$DOMAIN\$request_uri; }" >> $PROXY_CONF
+              echo "}" >> $PROXY_CONF
+
+              docker exec rasa-shared-proxy nginx -s reload
+
+              docker run --rm \
+                -v "/var/www/RASA/INFRA/certbot/conf:/etc/letsencrypt" \
+                -v "/var/www/RASA/INFRA/certbot/www:/var/lib/letsencrypt" \
+                certbot/certbot certonly --webroot \
+                --webroot-path=/var/lib/letsencrypt \
+                --email admin@rasagroup.global --agree-tos --no-eff-email \
+                -d $DOMAIN -d $WWW_DOMAIN || \
+              docker run --rm \
+                -v "/var/www/RASA/INFRA/certbot/conf:/etc/letsencrypt" \
+                -v "/var/www/RASA/INFRA/certbot/www:/var/lib/letsencrypt" \
+                certbot/certbot certonly --webroot \
+                --webroot-path=/var/lib/letsencrypt \
+                --email admin@rasagroup.global --agree-tos --no-eff-email \
+                -d $DOMAIN
+            fi
+
+            # 7. UPDATE NGINX PROXY KE HTTPS (REDIRECT WWW -> NON-WWW + PROXY PASS KE CONTAINER)
+            echo "server {" > $PROXY_CONF
+            echo "    listen 80;" >> $PROXY_CONF
+            echo "    server_name $DOMAIN $WWW_DOMAIN;" >> $PROXY_CONF
+            echo "    location /.well-known/acme-challenge/ { root /var/lib/letsencrypt; }" >> $PROXY_CONF
+            echo "    location / { return 301 https://$DOMAIN\$request_uri; }" >> $PROXY_CONF
+            echo "}" >> $PROXY_CONF
+            echo "server {" >> $PROXY_CONF
+            echo "    listen 443 ssl;" >> $PROXY_CONF
+            echo "    server_name $WWW_DOMAIN;" >> $PROXY_CONF
+            echo "    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;" >> $PROXY_CONF
+            echo "    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;" >> $PROXY_CONF
+            echo "    return 301 https://$DOMAIN\$request_uri;" >> $PROXY_CONF
+            echo "}" >> $PROXY_CONF
+            echo "server {" >> $PROXY_CONF
+            echo "    listen 443 ssl;" >> $PROXY_CONF
+            echo "    server_name $DOMAIN;" >> $PROXY_CONF
+            echo "    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;" >> $PROXY_CONF
+            echo "    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;" >> $PROXY_CONF
+            echo "    include /etc/nginx/conf.d/proxy_params;" >> $PROXY_CONF
+            echo "    root $TARGET_DIR/public;" >> $PROXY_CONF
+            echo "    index index.html;" >> $PROXY_CONF
+            echo "    resolver 127.0.0.11 valid=30s;" >> $PROXY_CONF
+            echo "    location / {" >> $PROXY_CONF
+            echo "        set \$upstream http://compro-$BRANCH-app:80;" >> $PROXY_CONF
+            echo "        proxy_pass \$upstream;" >> $PROXY_CONF
+            echo "    }" >> $PROXY_CONF
+            echo "}" >> $PROXY_CONF
+
+            # 8. RELOAD NGINX & PRUNE IMAGE LAMA
+            docker exec rasa-shared-proxy nginx -s reload
+            docker image prune -f
+
+            echo "Deployment Compro ($DOMAIN) Selesai Sempurna!"
+
