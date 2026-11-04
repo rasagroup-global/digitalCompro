@@ -93,17 +93,21 @@ jobs:
               fi
             done
 
-            # 6. REQUEST SSL VIA CERTBOT (UNTUK rasagroup.global & www.rasagroup.global)
+            # 6. SETUP HTTP CONFIG & REQUEST SSL VIA CERTBOT
+            mkdir -p /var/www/RASA/INFRA/certbot/conf /var/www/RASA/INFRA/certbot/www
+
+            echo "server {" > $PROXY_CONF
+            echo "    listen 80;" >> $PROXY_CONF
+            echo "    server_name $DOMAIN $WWW_DOMAIN;" >> $PROXY_CONF
+            echo "    location /.well-known/acme-challenge/ { root /var/lib/letsencrypt; }" >> $PROXY_CONF
+            echo "    location / {" >> $PROXY_CONF
+            echo "        proxy_pass http://compro-$BRANCH-app:80;" >> $PROXY_CONF
+            echo "    }" >> $PROXY_CONF
+            echo "}" >> $PROXY_CONF
+
+            docker exec rasa-shared-proxy nginx -s reload || docker restart rasa-shared-proxy
+
             if [ ! -d "/var/www/RASA/INFRA/certbot/conf/live/$DOMAIN" ]; then
-              echo "server {" > $PROXY_CONF
-              echo "    listen 80;" >> $PROXY_CONF
-              echo "    server_name $DOMAIN $WWW_DOMAIN;" >> $PROXY_CONF
-              echo "    location /.well-known/acme-challenge/ { root /var/lib/letsencrypt; }" >> $PROXY_CONF
-              echo "    location / { return 301 https://$DOMAIN\$request_uri; }" >> $PROXY_CONF
-              echo "}" >> $PROXY_CONF
-
-              docker exec rasa-shared-proxy nginx -s reload
-
               docker run --rm \
                 -v "/var/www/RASA/INFRA/certbot/conf:/etc/letsencrypt" \
                 -v "/var/www/RASA/INFRA/certbot/www:/var/lib/letsencrypt" \
@@ -117,41 +121,46 @@ jobs:
                 certbot/certbot certonly --webroot \
                 --webroot-path=/var/lib/letsencrypt \
                 --email admin@rasagroup.global --agree-tos --no-eff-email \
-                -d $DOMAIN
+                -d $DOMAIN || true
             fi
 
-            # 7. UPDATE NGINX PROXY KE HTTPS (REDIRECT WWW -> NON-WWW + PROXY PASS KE CONTAINER)
-            echo "server {" > $PROXY_CONF
-            echo "    listen 80;" >> $PROXY_CONF
-            echo "    server_name $DOMAIN $WWW_DOMAIN;" >> $PROXY_CONF
-            echo "    location /.well-known/acme-challenge/ { root /var/lib/letsencrypt; }" >> $PROXY_CONF
-            echo "    location / { return 301 https://$DOMAIN\$request_uri; }" >> $PROXY_CONF
-            echo "}" >> $PROXY_CONF
-            echo "server {" >> $PROXY_CONF
-            echo "    listen 443 ssl;" >> $PROXY_CONF
-            echo "    server_name $WWW_DOMAIN;" >> $PROXY_CONF
-            echo "    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;" >> $PROXY_CONF
-            echo "    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;" >> $PROXY_CONF
-            echo "    return 301 https://$DOMAIN\$request_uri;" >> $PROXY_CONF
-            echo "}" >> $PROXY_CONF
-            echo "server {" >> $PROXY_CONF
-            echo "    listen 443 ssl;" >> $PROXY_CONF
-            echo "    server_name $DOMAIN;" >> $PROXY_CONF
-            echo "    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;" >> $PROXY_CONF
-            echo "    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;" >> $PROXY_CONF
-            echo "    include /etc/nginx/conf.d/proxy_params;" >> $PROXY_CONF
-            echo "    root $TARGET_DIR/public;" >> $PROXY_CONF
-            echo "    index index.html;" >> $PROXY_CONF
-            echo "    resolver 127.0.0.11 valid=30s;" >> $PROXY_CONF
-            echo "    location / {" >> $PROXY_CONF
-            echo "        set \$upstream http://compro-$BRANCH-app:80;" >> $PROXY_CONF
-            echo "        proxy_pass \$upstream;" >> $PROXY_CONF
-            echo "    }" >> $PROXY_CONF
-            echo "}" >> $PROXY_CONF
+            # 7. UPDATE NGINX PROXY KE HTTPS JIKA SERTIFIKAT SUDAH ADA
+            if [ -f "/var/www/RASA/INFRA/certbot/conf/live/$DOMAIN/fullchain.pem" ]; then
+              echo "server {" > $PROXY_CONF
+              echo "    listen 80;" >> $PROXY_CONF
+              echo "    server_name $DOMAIN $WWW_DOMAIN;" >> $PROXY_CONF
+              echo "    location /.well-known/acme-challenge/ { root /var/lib/letsencrypt; }" >> $PROXY_CONF
+              echo "    location / { return 301 https://$DOMAIN\$request_uri; }" >> $PROXY_CONF
+              echo "}" >> $PROXY_CONF
+              echo "server {" >> $PROXY_CONF
+              echo "    listen 443 ssl;" >> $PROXY_CONF
+              echo "    server_name $WWW_DOMAIN;" >> $PROXY_CONF
+              echo "    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;" >> $PROXY_CONF
+              echo "    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;" >> $PROXY_CONF
+              echo "    return 301 https://$DOMAIN\$request_uri;" >> $PROXY_CONF
+              echo "}" >> $PROXY_CONF
+              echo "server {" >> $PROXY_CONF
+              echo "    listen 443 ssl;" >> $PROXY_CONF
+              echo "    server_name $DOMAIN;" >> $PROXY_CONF
+              echo "    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;" >> $PROXY_CONF
+              echo "    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;" >> $PROXY_CONF
+              echo "    include /etc/nginx/conf.d/proxy_params;" >> $PROXY_CONF
+              echo "    root $TARGET_DIR/public;" >> $PROXY_CONF
+              echo "    index index.html;" >> $PROXY_CONF
+              echo "    resolver 127.0.0.11 valid=30s;" >> $PROXY_CONF
+              echo "    location / {" >> $PROXY_CONF
+              echo "        set \$upstream http://compro-$BRANCH-app:80;" >> $PROXY_CONF
+              echo "        proxy_pass \$upstream;" >> $PROXY_CONF
+              echo "    }" >> $PROXY_CONF
+              echo "}" >> $PROXY_CONF
 
-            # 8. RELOAD NGINX & PRUNE IMAGE LAMA
-            docker exec rasa-shared-proxy nginx -s reload
+              docker exec rasa-shared-proxy nginx -s reload || docker restart rasa-shared-proxy
+            else
+              echo "WARNING: SSL Certificate belum siap. Web tetap berjalan via HTTP."
+            fi
+
+            # 8. PRUNE IMAGE LAMA
             docker image prune -f
 
-            echo "Deployment Compro ($DOMAIN) Selesai Sempurna!"
+            echo "Deployment Compro ($DOMAIN) Selesai!"
 
