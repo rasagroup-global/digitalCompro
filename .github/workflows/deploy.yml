@@ -94,12 +94,16 @@ jobs:
             done
 
             # 6. SETUP HTTP CONFIG & REQUEST SSL VIA CERTBOT
-            mkdir -p /var/www/RASA/INFRA/certbot/conf /var/www/RASA/INFRA/certbot/www
+            mkdir -p $TARGET_DIR/public/.well-known/acme-challenge
+            chmod -R 755 $TARGET_DIR/public
 
             echo "server {" > $PROXY_CONF
             echo "    listen 80;" >> $PROXY_CONF
             echo "    server_name $DOMAIN $WWW_DOMAIN;" >> $PROXY_CONF
-            echo "    location /.well-known/acme-challenge/ { root /var/lib/letsencrypt; }" >> $PROXY_CONF
+            echo "    root $TARGET_DIR/public;" >> $PROXY_CONF
+            echo "    location /.well-known/acme-challenge/ {" >> $PROXY_CONF
+            echo "        try_files \$uri =404;" >> $PROXY_CONF
+            echo "    }" >> $PROXY_CONF
             echo "    location / {" >> $PROXY_CONF
             echo "        proxy_pass http://compro-$BRANCH-app:80;" >> $PROXY_CONF
             echo "    }" >> $PROXY_CONF
@@ -110,16 +114,16 @@ jobs:
             if [ ! -d "/var/www/RASA/INFRA/certbot/conf/live/$DOMAIN" ]; then
               docker run --rm \
                 -v "/var/www/RASA/INFRA/certbot/conf:/etc/letsencrypt" \
-                -v "/var/www/RASA/INFRA/certbot/www:/var/lib/letsencrypt" \
+                -v "$TARGET_DIR/public:/webroot" \
                 certbot/certbot certonly --webroot \
-                --webroot-path=/var/lib/letsencrypt \
+                --webroot-path=/webroot \
                 --email admin@rasagroup.global --agree-tos --no-eff-email \
                 -d $DOMAIN -d $WWW_DOMAIN || \
               docker run --rm \
                 -v "/var/www/RASA/INFRA/certbot/conf:/etc/letsencrypt" \
-                -v "/var/www/RASA/INFRA/certbot/www:/var/lib/letsencrypt" \
+                -v "$TARGET_DIR/public:/webroot" \
                 certbot/certbot certonly --webroot \
-                --webroot-path=/var/lib/letsencrypt \
+                --webroot-path=/webroot \
                 --email admin@rasagroup.global --agree-tos --no-eff-email \
                 -d $DOMAIN || true
             fi
